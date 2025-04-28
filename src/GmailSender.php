@@ -4,6 +4,7 @@ namespace Elb\GmailSender;
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use Illuminate\Support\Facades\Mail; 
 
 class GmailSender
 {
