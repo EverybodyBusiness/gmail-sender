@@ -1,0 +1,23 @@
+{
+    "name": "elb/gmail-sender",
+    "description": "Gmai 계정을 통해서 메일을 보내는패키지",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Elb\\GmailSender\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Elb\\GmailSender\\GmailSenderServiceProvider"
+            ]
+        }
+    },
+    "authors": [
+        {
+            "name": "ELB"
+        }
+    ],
+    "require": {}
+}
