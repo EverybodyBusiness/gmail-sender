@@ -2,80 +2,74 @@
 
 namespace Elb\GmailSender;
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-use Illuminate\Support\Facades\Mail; 
+use Illuminate\Support\Facades\Mail;
 
 class GmailSender
 {
-    protected $user;
-    protected $password;
+    protected $from;
     protected $fromName;
 
     public function __construct()
     {
-        $this->user = config('gmail-sender.gmail_user', 'byoungchullee@gmail.com');
-        $this->password = config('gmail-sender.gmail_password');
-        $this->fromName = config('gmail-sender.gmail_name', '이병철');
+        $this->from = config('gmail-sender.from_address', env('GMAIL_SENDER_FROM', 'byoungchullee@gmail.com'));
+        $this->fromName = config('gmail-sender.from_name', env('GMAIL_SENDER_NAME', '이병철'));
     }
 
     /**
-     * 메일 보내기
-     *
-     * @param string $toEmail 수신자 이메일
-     * @param string $subject 메일 제목
-     * @param string $body 메일 본문
-     * @return string
-     * @throws \Exception
-     */
-    public function send($toEmail, $subject, $body)
-    {
-        $mail = new PHPMailer(true);
-
-        echo 'test';
-
-        try {
-            $mail->isSMTP();
-            $mail->Host = 'smtp.gmail.com';
-            $mail->SMTPAuth = true;
-            $mail->Username = $this->user;
-            $mail->Password = $this->password;
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
-
-            // 발신자 (고정)
-            $mail->setFrom($this->user, $this->fromName);
-            // 수신자
-            $mail->addAddress($toEmail);
-
-            $mail->isHTML(true);
-            $mail->Subject = $subject;
-            $mail->Body = $body;
-
-            $mail->send();
-            return "Email sent successfully to {$toEmail}";
-        } catch (Exception $e) {
-            throw new \Exception("Email sending failed: {$mail->ErrorInfo}");
-        }
-    }
-
-     /**
-     * 간단한 텍스트 메일 전송
+     * 텍스트 메일 전송
      *
      * @param string $to 수신자 이메일
      * @param string $subject 메일 제목
-     * @param string $body 메일 본문
+     * @param string $textBody 메일 본문 (텍스트)
      * @return bool
      */
-    public function sendMail(string $to, string $subject, string $body): bool
+    public function sendText(string $to, string $subject, string $textBody): bool
     {
-        $from = config('gmail-sender.from_address', env('GMAIL_SENDER_FROM'));
-        $fromName = config('gmail-sender.from_name', env('GMAIL_SENDER_NAME'));
-
-        Mail::raw($body, function ($message) use ($to, $subject, $from, $fromName) {
-            $message->from($from, $fromName)
+        Mail::raw($textBody, function ($message) use ($to, $subject) {
+            $message->from($this->from, $this->fromName)
                     ->to($to)
                     ->subject($subject);
+        });
+
+        return true;
+    }
+
+    /**
+     * HTML 메일 전송
+     *
+     * @param string $to 수신자 이메일
+     * @param string $subject 메일 제목
+     * @param string $htmlBody 메일 본문 (HTML)
+     * @return bool
+     */
+    public function sendHtml(string $to, string $subject, string $htmlBody): bool
+    {
+        Mail::html($htmlBody, function ($message) use ($to, $subject) {
+            $message->from($this->from, $this->fromName)
+                    ->to($to)
+                    ->subject($subject);
+        });
+
+        return true;
+    }
+
+    /**
+     * 텍스트 + HTML 함께 보내는 Multipart 메일 전송
+     *
+     * @param string $to 수신자 이메일
+     * @param string $subject 메일 제목
+     * @param string $htmlBody 메일 본문 (HTML)
+     * @param string $textBody 메일 본문 (텍스트)
+     * @return bool
+     */
+    public function sendMultipart(string $to, string $subject, string $htmlBody, string $textBody): bool
+    {
+        Mail::send([], [], function ($message) use ($to, $subject, $htmlBody, $textBody) {
+            $message->from($this->from, $this->fromName)
+                    ->to($to)
+                    ->subject($subject)
+                    ->setBody($htmlBody, 'text/html')    // HTML 메일 본문
+                    ->addPart($textBody, 'text/plain');   // 텍스트 버전 추가
         });
 
         return true;
