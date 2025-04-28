@@ -1,6 +1,6 @@
 {
     "name": "elb/gmail-sender",
-    "description": "Gmai 계정을 통해서 메일을 보내는패키지",
+    "description": "Gmai 계정을 통해서 메일을 보내는 패키지",
     "type": "library",
     "autoload": {
         "psr-4": {

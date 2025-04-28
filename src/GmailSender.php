@@ -31,6 +31,8 @@ class GmailSender
     {
         $mail = new PHPMailer(true);
 
+        echo 'test';
+        
         try {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
