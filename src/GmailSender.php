@@ -32,7 +32,7 @@ class GmailSender
         $mail = new PHPMailer(true);
 
         echo 'test';
-        
+
         try {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
@@ -56,5 +56,27 @@ class GmailSender
         } catch (Exception $e) {
             throw new \Exception("Email sending failed: {$mail->ErrorInfo}");
         }
+    }
+
+     /**
+     * 간단한 텍스트 메일 전송
+     *
+     * @param string $to 수신자 이메일
+     * @param string $subject 메일 제목
+     * @param string $body 메일 본문
+     * @return bool
+     */
+    public function sendMail(string $to, string $subject, string $body): bool
+    {
+        $from = config('gmail-sender.from_address', env('GMAIL_SENDER_FROM'));
+        $fromName = config('gmail-sender.from_name', env('GMAIL_SENDER_NAME'));
+
+        Mail::raw($body, function ($message) use ($to, $subject, $from, $fromName) {
+            $message->from($from, $fromName)
+                    ->to($to)
+                    ->subject($subject);
+        });
+
+        return true;
     }
 }
