@@ -3,8 +3,10 @@
 namespace Elb\GmailSender;
 
 use Illuminate\Support\Facades\Mail;
+use Symfony\Component\Mime\Part\TextPart;
+use Symfony\Component\Mime\Part\Multipart\AlternativePart;
 
-class GmailSender
+cldass GmailSender
 {
     protected $from;
     protected $fromName;
@@ -53,25 +55,23 @@ class GmailSender
         return true;
     }
 
-    /**
-     * 텍스트 + HTML 함께 보내는 Multipart 메일 전송
-     *
-     * @param string $to 수신자 이메일
-     * @param string $subject 메일 제목
-     * @param string $htmlBody 메일 본문 (HTML)
-     * @param string $textBody 메일 본문 (텍스트)
-     * @return bool
-     */
-    public function sendMultipart(string $to, string $subject, string $htmlBody, string $textBody): bool
-    {
-        Mail::send([], [], function ($message) use ($to, $subject, $htmlBody, $textBody) {
-            $message->from($this->from, $this->fromName)
-                    ->to($to)
-                    ->subject($subject)
-                    ->setBody($htmlBody, 'text/html')    // HTML 메일 본문
-                    ->addPart($textBody, 'text/plain');   // 텍스트 버전 추가
-        });
 
-        return true;
-    }
+public function sendMultipart(string $to, string $subject, string $htmlBody, string $textBody): bool
+{
+    Mail::send([], [], function ($message) use ($to, $subject, $htmlBody, $textBody) {
+        $message->from($this->from, $this->fromName)
+                ->to($to)
+                ->subject($subject);
+
+        // 여기 수정: Multipart AlternativePart 객체로 설정
+        $multipart = new AlternativePart(
+            new TextPart($textBody, 'utf-8'),
+            new TextPart($htmlBody, 'utf-8', 'html')
+        );
+
+        $message->getSymfonyMessage()->setBody($multipart);
+    });
+
+    return true;
+}
 }
